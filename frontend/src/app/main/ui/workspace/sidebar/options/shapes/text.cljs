@@ -10,6 +10,7 @@
    [app.main.data.workspace.texts :as dwt]
    [app.main.refs :as refs]
    [app.main.ui.workspace.sidebar.options.menus.blur :refer [blur-menu]]
+   [app.main.ui.workspace.sidebar.options.menus.color-selection :refer [color-selection-menu]]
    [app.main.ui.workspace.sidebar.options.menus.constraints :refer [constraint-attrs constraints-menu]]
    [app.main.ui.workspace.sidebar.options.menus.fill :refer [fill-menu fill-attrs]]
    [app.main.ui.workspace.sidebar.options.menus.layer :refer [layer-attrs layer-menu]]
@@ -28,13 +29,12 @@
         editor-state (get state-map (:id shape))
 
         layer-values (select-keys shape layer-attrs)
-
         fill-values  (-> (dwt/current-text-values
                           {:editor-state editor-state
                            :shape shape
                            :attrs (conj text-fill-attrs :fills)})
                          (d/update-in-when [:fill-color-gradient :type] keyword))
-
+        
         fill-values (if (not (contains? fill-values :fills))
                       ;; Old fill format
                       {:fills [fill-values]}
@@ -58,7 +58,6 @@
                        :attrs text-attrs}))]
 
     [:*
-
      [:& measures-menu
       {:ids ids
        :type type
@@ -81,6 +80,9 @@
      [:& stroke-menu {:ids ids
                       :type type
                       :values stroke-values}]
+
+     (when (= :multiple (:fills fill-values))
+       [:& color-selection-menu {:type type :shapes [shape]}])
 
      [:& shadow-menu
       {:ids ids
