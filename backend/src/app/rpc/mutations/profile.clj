@@ -343,11 +343,12 @@
 ;; --- MUTATION: Update Profile (own)
 
 (defn- update-profile
-  [conn {:keys [id fullname lang theme] :as params}]
+  [conn {:keys [id fullname lang theme newsletter-subscribed] :as params}]
   (let [profile (db/update! conn :profile
                             {:fullname fullname
                              :lang lang
-                             :theme theme}
+                             :theme theme
+                             :newsletter-subscribed newsletter-subscribed}
                             {:id id})]
     (-> profile
         (profile/decode-profile-row)

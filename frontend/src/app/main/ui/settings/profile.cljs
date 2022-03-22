@@ -42,14 +42,23 @@
 (mf/defc profile-form
   [{:keys [locale] :as props}]
   (let [profile (mf/deref refs/profile)
+        initial (mf/use-fn
+                 (mf/deps profile)
+                 (fn []
+                   (let [newsletter-state (get-in profile [:props :newsletter-subscribed])]
+                     (assoc profile :newsletter-subscribed newsletter-state))))
         form    (fm/use-form :spec ::profile-form
-                             :initial profile)]
+                             :initial initial)
+        disabled-button (mf/use-state true)
+        activate-btn #(reset! disabled-button false)]
+
     [:& fm/form {:on-submit on-submit
                  :form form
                  :class "profile-form"}
      [:div.fields-row
       [:& fm/input
        {:type "text"
+        :on-key-down activate-btn
         :name :fullname
         :label (t locale "dashboard.your-name")}]]
 
@@ -66,8 +75,19 @@
         [:a {:on-click #(modal/show! :change-email {})}
          (t locale "dashboard.change-email")]]]]
 
+     [:div.newsletter-subs
+      [:p.newsletter-title (tr "dashboard.newsletter-title")]
+      [:& fm/input {:name :newsletter-subscribed
+                    :class "check-primary"
+                    :type "checkbox"
+                    :label  (tr "dashboard.newsletter-msg")
+                    :on-click activate-btn}]
+      [:p.info (tr "onboarding.newsletter.privacy1")  [:a {:target "_blank" :href "https://penpot.app/privacy.html"} (tr "onboarding.newsletter.policy")]]
+      [:p.info (tr "onboarding.newsletter.privacy2")]]
+
      [:& fm/submit-button
-      {:label (t locale "dashboard.update-settings")}]
+      {:label (t locale "dashboard.save-settings")
+       :disabled @disabled-button}]
 
      [:div.links
       [:div.link-item

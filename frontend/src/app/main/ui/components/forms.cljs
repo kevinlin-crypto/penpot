@@ -59,15 +59,15 @@
 
         klass (str more-classes " "
                    (dom/classnames
-                     :focus          @focus?
-                     :valid          (and touched? (not error))
-                     :invalid        (and touched? error)
-                     :disabled       disabled
-                     :empty          (and is-text? (str/empty? value))
-                     :with-icon      (not (nil? help-icon'))
-                     :custom-input   is-text?
-                     :input-radio    is-radio?
-                     :input-checkbox is-checkbox?))
+                    :focus          @focus?
+                    :valid          (and touched? (not error))
+                    :invalid        (and touched? error)
+                    :disabled       disabled
+                    :empty          (and is-text? (str/empty? value))
+                    :with-icon      (not (nil? help-icon'))
+                    :custom-input   is-text?
+                    :input-radio    is-radio?
+                    :input-checkbox is-checkbox?))
 
         swap-text-password
         (fn []
@@ -80,6 +80,10 @@
         on-change (fn [event]
                     (let [value  (-> event dom/get-target dom/get-input-value)]
                       (fm/on-input-change form input-name value trim)))
+
+        on-checkbox-change (fn [event]
+                             (let [value  (-> event dom/get-target dom/get-input-value)]
+                               (fm/on-checkbox-change form input-name value)))
 
         on-blur
         (fn [_]
@@ -95,8 +99,11 @@
                          :on-focus on-focus
                          :on-blur on-blur
                          :placeholder label
-                         :on-change on-change
+                         :on-change (if is-checkbox?
+                                      on-checkbox-change
+                                      on-change)
                          :type @type')
+                  (cond-> (and value is-checkbox?) (assoc :checked value))
                   (obj/clj->props))]
 
     [:div
@@ -210,7 +217,7 @@
   (let [form (or form (mf/use-ctx form-ctx))]
     [:input.btn-primary.btn-large
      {:name "submit"
-      :class (when-not (:valid @form) "btn-disabled")
+      :class (when (or (not (:valid @form)) (true? disabled)) "btn-disabled")
       :disabled (or (not (:valid @form)) (true? disabled))
       :on-click on-click
       :value label
